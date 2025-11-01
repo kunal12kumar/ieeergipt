@@ -34,18 +34,12 @@ export function NavbarDemo() {
       name: "Leaderboard",
       link: "/leaderboard",
     },
-    {
-        name: "Workshop",
-        link: "/workshop",
-    },
+    
     {
         name: "About Us",
         link: "/about_us"
     },
-    {
-        name: "Alumni",
-        link: "/alumni",
-    },
+   
     {
         name:"Contact Us",
         link: "/contact_us"

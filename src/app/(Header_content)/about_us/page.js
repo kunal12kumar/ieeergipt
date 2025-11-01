@@ -105,19 +105,14 @@ const AboutUs = () => {
 
   const achievements = [
     {
-      year: "2024",
+      year: "2025",
       title: "National Level Hackathon Winner",
       description: "Our team secured first place in the national hackathon competition.",
     },
     {
-      year: "2023",
+      year: "2024",
       title: "Best Student Branch Award",
       description: "Recognized as the best IEEE student branch in the region.",
-    },
-    {
-      year: "2023",
-      title: "Tech Fest Success",
-      description: "Organized the largest tech fest with 1000+ participants.",
     },
     {
       year: "2022",
