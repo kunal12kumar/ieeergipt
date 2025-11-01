@@ -551,7 +551,7 @@ const UpcomingEventsDetails = () => {
           className="text-center mb-12 md:mb-16"
         >
           
-          <h1 className="text-4xl md:text-7xl font-bold mb-4 pt-8 md:mb-6">
+          <h1 className="text-4xl md:text-7xl font-bold mb-4 sm:pt-8  pt-20 md:mb-6">
             <motion.span
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
