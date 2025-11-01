@@ -67,7 +67,7 @@ const RegistrationForm = ({ eventTitle }) => {
     setLoading(true);
 
     try {
-      const response = await axios.post("/api/registration", formData, {
+      const response = await axios.post("/api/sign_auth", formData, {
         headers: { "Content-Type": "application/json" },
         timeout: 100000,
       });
