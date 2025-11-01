@@ -134,6 +134,7 @@ export function TimelineDemo() {
         </div>
       ),
     },
+    
   ];
   return (
     <div className="relative w-full bg-gradient-to-r from-[#404371] to-[#780831] overflow-clip">

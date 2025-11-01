@@ -550,16 +550,8 @@ const UpcomingEventsDetails = () => {
           transition={{ duration: 0.8, ease: "easeOut" }}
           className="text-center mb-12 md:mb-16"
         >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-            className="inline-block mb-4 md:mb-6"
-          >
-            <Sparkles className="w-10 h-10 md:w-12 md:h-12 text-yellow-400 animate-spin-slow" />
-          </motion.div>
           
-          <h1 className="text-4xl md:text-7xl font-bold mb-4 md:mb-6">
+          <h1 className="text-4xl md:text-7xl font-bold mb-4 pt-8 md:mb-6">
             <motion.span
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
