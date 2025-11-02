@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   try {
     console.log('API route hit!');
     console.log('Environment check:', {
-      hasMongoUri: !!process.env.MONGODB_URI,
+      hasMongoUri: !!process.env.MONGO_DB_URL,
       nodeEnv: process.env.NODE_ENV
     });
 
