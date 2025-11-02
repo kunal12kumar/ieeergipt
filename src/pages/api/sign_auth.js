@@ -57,7 +57,7 @@ export default async function handler(req, res) {
     ]);
 
     console.log('Connected! Accessing database...');
-    const db = client.db("ieee-events");
+    const db = client.db("registration");
     const collection = db.collection("registrations");
 
     const existingRegistration = await collection.findOne({
