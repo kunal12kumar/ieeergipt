@@ -1,5 +1,4 @@
-import clientPromise from "@/lib/mongodb";
-
+// pages/api/sign_auth.js
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -15,84 +14,62 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Method not allowed" });
   }
 
-  console.log('=== Registration API Called ===');
-  console.log('Timestamp:', new Date().toISOString());
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('Request Body:', JSON.stringify(req.body, null, 2));
-
   try {
+    console.log('API route hit!');
+    console.log('Environment check:', {
+      hasMongoUri: !!process.env.MONGODB_URI,
+      nodeEnv: process.env.NODE_ENV
+    });
+
+    // Test without MongoDB first
     const { name, rollNumber, email, hackerrankId, whatsappNumber, event } = req.body;
 
-    // Validate required fields
     if (!name || !rollNumber || !email || !hackerrankId || !whatsappNumber || !event) {
-      console.error('Validation failed - missing fields:', {
-        name: !!name,
-        rollNumber: !!rollNumber,
-        email: !!email,
-        hackerrankId: !!hackerrankId,
-        whatsappNumber: !!whatsappNumber,
-        event: !!event
+      return res.status(400).json({ 
+        message: "Missing required fields",
+        received: { name: !!name, rollNumber: !!rollNumber, email: !!email, hackerrankId: !!hackerrankId, whatsappNumber: !!whatsappNumber, event: !!event }
       });
-      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    console.log('Fields validated successfully');
-    console.log('Attempting MongoDB connection...');
+    console.log('Fields validated, attempting MongoDB import...');
 
-    // Connect with timeout and retry logic
-    let client;
-    let retries = 3;
-    let lastError;
-    
-    while (retries > 0) {
-      try {
-        console.log(`Connection attempt ${4 - retries}/3`);
-        client = await Promise.race([
-          clientPromise,
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Connection timeout after 10s')), 10000)
-          )
-        ]);
-        console.log('MongoDB connected successfully!');
-        break;
-      } catch (err) {
-        lastError = err;
-        retries--;
-        console.error(`Connection attempt failed. Retries left: ${retries}`);
-        console.error('Error:', err.message);
-        console.error('Error stack:', err.stack);
-        
-        if (retries === 0) {
-          console.error('All connection attempts failed');
-          throw err;
-        }
-        
-        console.log('Waiting 1s before retry...');
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
+    // Dynamic import to catch import errors
+    let clientPromise;
+    try {
+      const mongoModule = await import('@/lib/mongodb');
+      clientPromise = mongoModule.default;
+      console.log('MongoDB module imported successfully');
+    } catch (importError) {
+      console.error('MongoDB import failed:', importError);
+      return res.status(500).json({
+        message: "Database module import failed",
+        error: importError.message,
+        stack: importError.stack
+      });
     }
 
-    console.log('Accessing database and collection...');
+    console.log('Attempting connection...');
+    const client = await Promise.race([
+      clientPromise,
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection timeout after 8 seconds')), 8000)
+      )
+    ]);
+
+    console.log('Connected! Accessing database...');
     const db = client.db("ieee-events");
     const collection = db.collection("registrations");
-    console.log('Database and collection accessed successfully');
 
-    // Check for duplicates
-    console.log('Checking for duplicate registration...');
     const existingRegistration = await collection.findOne({
       $or: [{ email, event }, { rollNumber, event }]
     });
 
     if (existingRegistration) {
-      console.log('Duplicate registration found:', existingRegistration._id);
       return res.status(409).json({ 
         message: "Already registered for this event"
       });
     }
 
-    console.log('No duplicate found, inserting new registration...');
-
-    // Insert registration
     const result = await collection.insertOne({
       name: name.trim(),
       rollNumber: rollNumber.trim(),
@@ -104,7 +81,7 @@ export default async function handler(req, res) {
       updatedAt: new Date(),
     });
 
-    console.log('Registration inserted successfully:', result.insertedId);
+    console.log('Registration successful:', result.insertedId);
 
     return res.status(201).json({ 
       message: "Registration successful", 
@@ -113,44 +90,19 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("=== REGISTRATION ERROR ===");
-    console.error("Error Name:", error.name);
-    console.error("Error Message:", error.message);
-    console.error("Error Code:", error.code);
-    console.error("Error Stack:", error.stack);
-    console.error("Full Error Object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-    console.error("========================");
+    console.error("=== FULL ERROR ===");
+    console.error("Name:", error.name);
+    console.error("Message:", error.message);
+    console.error("Stack:", error.stack);
+    console.error("Code:", error.code);
+    console.error("==================");
     
-    // Specific error handling
-    if (error.message?.includes('SSL') || error.message?.includes('TLS')) {
-      return res.status(503).json({ 
-        message: "Database connection error. Please try again.",
-        error: "TLS/SSL connection failed",
-        details: error.message
-      });
-    }
-
-    if (error.message?.includes('timeout') || error.message?.includes('Connection timeout')) {
-      return res.status(504).json({ 
-        message: "Database connection timed out. Please try again.",
-        error: "Connection timeout",
-        details: error.message
-      });
-    }
-
-    if (error.name === 'MongoServerSelectionError' || error.name === 'MongoNetworkError') {
-      return res.status(503).json({ 
-        message: "Cannot connect to database. Please try again later.",
-        error: error.name,
-        details: error.message
-      });
-    }
-
     return res.status(500).json({ 
-      message: "Server error. Please try again.",
+      message: "Server error",
       error: error.message,
       errorName: error.name,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      errorCode: error.code,
+      stack: error.stack
     });
   }
 }

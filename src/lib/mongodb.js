@@ -1,6 +1,10 @@
 // lib/mongodb.js
 import { MongoClient } from 'mongodb';
 
+if (!process.env.MONGO_DB_URL) {
+  throw new Error('Invalid/Missing environment variable: "MONGO_DB_URL"');
+}
+
 const uri = process.env.MONGO_DB_URL;
 const options = {
   serverSelectionTimeoutMS: 5000,
@@ -9,10 +13,6 @@ const options = {
 
 let client;
 let clientPromise;
-
-if (!uri) {
-  throw new Error('Please add your Mongo URI to .env.local');
-}
 
 if (process.env.NODE_ENV === 'development') {
   if (!global._mongoClientPromise) {
